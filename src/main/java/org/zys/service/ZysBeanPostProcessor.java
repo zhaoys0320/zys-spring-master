@@ -20,7 +20,7 @@ public class ZysBeanPostProcessor implements BeanPostProcessor {
         System.out.println("初始化后方法调用");
         //匹配
         if(beanName.equals("userService")){
-            Object proxyInstance = Proxy.newProxyInstance(UserInterface.class.getClassLoader(), new Class[]{UserInterface.class}, new InvocationHandler() {
+            Object proxyInstance = Proxy.newProxyInstance(bean.getClass().getClassLoader(), bean.getClass().getInterfaces(), new InvocationHandler() {
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                     System.out.println("代理逻辑");  //找切点
