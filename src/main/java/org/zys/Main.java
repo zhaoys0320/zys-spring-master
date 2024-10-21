@@ -7,6 +7,5 @@ public class Main {
         ZysApplicationContext zysApplicationContext = new ZysApplicationContext(AppConfig.class);
         zysApplicationContext.getBean("userService");
 
-
     }
 }
