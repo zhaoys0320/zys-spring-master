@@ -25,7 +25,6 @@ public class ZysApplicationContext{
         //得到配置类
         //解析配置类--->解析ComponentScan注解--->扫描路径
         scan(configClass);
-//        for (String s : beanDefinitionMap.keys()) {
         for (Map.Entry<String, BeanDefinition> entries:beanDefinitionMap.entrySet()) {
             String BeanName = entries.getKey();
             BeanDefinition beanDefinition = beanDefinitionMap.get(BeanName);
@@ -37,48 +36,48 @@ public class ZysApplicationContext{
         }
 
     }
-    public Object createBean(String BeanName,BeanDefinition beanDefinition){
-        Class clazz = beanDefinition.getClazz();
-        try {
+        public Object createBean(String BeanName,BeanDefinition beanDefinition){
+            Class clazz = beanDefinition.getClazz();
+            try {
 
-            //调用构造方法，构造示例
-            Object instance = clazz.getDeclaredConstructor().newInstance();
-            Field[] declaredFields = clazz.getDeclaredFields();
+                //调用构造方法，构造示例
+                Object instance = clazz.getDeclaredConstructor().newInstance();
+                Field[] declaredFields = clazz.getDeclaredFields();
 
 
-            //依赖注入，获取到类的定义区域，判断每个定义区域是否包含Autowired对象，包含则创建bean注入。
-            for (Field declaredField : declaredFields) {
-                if (declaredField.isAnnotationPresent(Autowired.class)) {
-                    String name = declaredField.getName();
-                    System.out.println("需要注入的bean名称： "+name);
-                    Object bean = getBean(name);
-                    declaredField.setAccessible(true);
-                    declaredField.set(instance,bean);
+                //依赖注入，获取到类的定义区域，判断每个定义区域是否包含Autowired对象，包含则创建bean注入。
+                for (Field declaredField : declaredFields) {
+                    if (declaredField.isAnnotationPresent(Autowired.class)) {
+                        String name = declaredField.getName();
+                        System.out.println("需要注入的bean名称： "+name);
+                        Object bean = getBean(name);
+                        declaredField.setAccessible(true);
+                        declaredField.set(instance,bean);
+                    }
                 }
-            }
 
-            //Aware接口回调
-            if (instance instanceof BeanNameAware) {
-                ((BeanNameAware) instance).setBeanName(BeanName);
-            }
-            //初始化前BeanPostProcessor
-            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
-                instance = beanPostProcessor.postProcessBeforeInitialization(instance, BeanName);
-            }
+                //Aware接口回调
+                if (instance instanceof BeanNameAware) {
+                    ((BeanNameAware) instance).setBeanName(BeanName);
+                }
+                //初始化前BeanPostProcessor
+                for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                    instance = beanPostProcessor.postProcessBeforeInitialization(instance, BeanName);
+                }
 
-            //初始化
-            if (instance instanceof InitializeBean) {
-                ((InitializeBean) instance).afterPropertiesSet();
+                //初始化
+                if (instance instanceof InitializeBean) {
+                    ((InitializeBean) instance).afterPropertiesSet();
+                }
+                //初始化后BeanPostProcessor
+                for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                    instance = beanPostProcessor.postProcessAfterInitialization(instance, BeanName);
+                }
+                return instance;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-            //初始化后BeanPostProcessor
-            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
-                instance = beanPostProcessor.postProcessAfterInitialization(instance, BeanName);
-            }
-            return instance;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
-    }
 
     private void scan(Class configClass) {
         ComponentScan declaredAnnotation =(ComponentScan) configClass.getDeclaredAnnotation(ComponentScan.class);
